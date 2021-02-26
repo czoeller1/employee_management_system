@@ -341,7 +341,7 @@ function newRole() {
   });
 }
 
-function deleteEmployee() {
+function deleteRole() {
   connection.query(`SELECT title, id FROM role`, (err, res) => {
     if (err) throw err;
 
@@ -368,16 +368,30 @@ function deleteEmployee() {
         //console.log(titles, managers);
 
         let roleId = roles.filter((el) => el.title === response.role)[0].id;
-
         connection.query(
-          "DELETE FROM employee WHERE ?",
-          [{ id: roleId }],
+          "SELECT COUNT(*) FROM employee GROUPBY role_id WHERE role_id = ?",
+          roleId,
           (err, res) => {
             if (err) throw err;
-            console.log(`Removed ${response.role} from the database`);
-            // Call updateProduct AFTER the INSERT completes
 
-            menuPrompt();
+            if (res.length > 0) {
+              console.log(
+                "You cannot delete a role while an employee is assigned to it"
+              );
+              menuPrompt();
+            } else {
+              connection.query(
+                "DELETE FROM employee WHERE ?",
+                [{ id: roleId }],
+                (err, res) => {
+                  if (err) throw err;
+                  console.log(`Removed ${response.role} from the database`);
+                  // Call updateProduct AFTER the INSERT completes
+
+                  menuPrompt();
+                }
+              );
+            }
           }
         );
       });
