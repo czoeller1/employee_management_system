@@ -34,7 +34,7 @@ function menuPrompt() {
         choices: [
           "View employees",
           "Add a new employee",
-          "Delete an Employee",
+          "Delete an employee",
           "Change an employee's role",
           "View roles",
           "Add a new role",
