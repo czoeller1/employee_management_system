@@ -381,7 +381,7 @@ function deleteRole() {
               menuPrompt();
             } else {
               connection.query(
-                "DELETE FROM employee WHERE ?",
+                "DELETE FROM role WHERE ?",
                 [{ id: roleId }],
                 (err, res) => {
                   if (err) throw err;
@@ -433,4 +433,66 @@ function newDepartment() {
         }
       );
     });
+}
+
+function deleteDepartment() {
+  connection.query(`SELECT name, id FROM department`, (err, res) => {
+    if (err) throw err;
+
+    let depts = res;
+    //managers.unshift({ name: "None", id: 0 });
+    //console.log(managers);
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          message: "Select a department to delete:",
+          choices: depts.map((el) => el.name),
+          name: "dept",
+        },
+
+        {
+          type: "confirm",
+          message: "Are you sure you want to delete this department?",
+          default: true,
+          name: "confirm",
+        },
+      ])
+      .then((response) => {
+        //console.log(titles, managers);
+
+        let deptId = depts.filter((el) => el.name === response.dept)[0].id;
+        connection.query(
+          `SELECT COUNT(*) FROM
+          employee INNER JOIN role ON employee.role_id = role.id 
+          INNER JOIN department ON role.department_id = department.id 
+          LEFT JOIN employee AS manager ON employee.manager_id = manager.id
+          WHERE department_id = ?
+         GROUP BY department.id;`,
+          deptId,
+          (err, res) => {
+            if (err) throw err;
+
+            if (res.length > 0) {
+              console.log(
+                "You cannot delete a department while an employee is assigned to it"
+              );
+              menuPrompt();
+            } else {
+              connection.query(
+                "DELETE FROM department WHERE ?",
+                [{ id: deptId }],
+                (err, res) => {
+                  if (err) throw err;
+                  console.log(`Removed ${response.dept} from the database`);
+                  // Call updateProduct AFTER the INSERT completes
+
+                  menuPrompt();
+                }
+              );
+            }
+          }
+        );
+      });
+  });
 }
