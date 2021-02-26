@@ -496,3 +496,18 @@ function deleteDepartment() {
       });
   });
 }
+
+function departmentBudgets() {
+  let query = `SELECT department.name, SUM(salary) AS budget FROM
+  employee INNER JOIN role ON employee.role_id = role.id 
+  INNER JOIN department ON role.department_id = department.id 
+  LEFT JOIN employee AS manager ON employee.manager_id = manager.id
+ GROUP BY department.name
+ ORDER BY SUM(salary) DESC`;
+
+  connection.query(query, (err, res) => {
+    if (err) throw err;
+
+    console.table(res);
+  });
+}
