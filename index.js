@@ -33,11 +33,15 @@ function menuPrompt() {
         choices: [
           "View employees",
           "Add a new employee",
+          "Delete an Employee",
           "Change an employee's role",
           "View roles",
           "Add a new role",
+          "Delete a role",
           "View departments",
           "Add a new department",
+          "Delete a department",
+          "View budget for each department",
           "Exit",
         ],
       },
@@ -50,6 +54,9 @@ function menuPrompt() {
         case "Add a new employee":
           newEmployee();
           break;
+        case "Delete an employee":
+          deleteEmployee();
+          break;
         case "Change an employee's role":
           updateRole();
           break;
@@ -59,11 +66,20 @@ function menuPrompt() {
         case "Add a new role":
           newRole();
           break;
+        case "Delete a role":
+          deleteRole();
+          break;
         case "View departments":
           viewDepartments();
           break;
         case "Add a new department":
           newDepartment();
+          break;
+        case "Delete a department":
+          deleteDepartment();
+          break;
+        case "View budget for each department":
+          departmentBudgets();
           break;
         case "Exit":
           connection.end();
@@ -157,6 +173,53 @@ function newEmployee() {
       }
     );
   });
+}
+
+function deleteEmployee() {
+  connection.query(
+    `SELECT CONCAT(first_name, " ", last_name) AS name, id FROM employee`,
+    (err, res) => {
+      if (err) throw err;
+
+      let employees = res;
+      //managers.unshift({ name: "None", id: 0 });
+      //console.log(managers);
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            message: "Select an employee to delete:",
+            choices: employees.map((el) => el.name),
+            name: "employee",
+          },
+
+          {
+            type: "confirm",
+            message: "Are you sure you want to delete this employee?",
+            default: true,
+            name: "confirm",
+          },
+        ])
+        .then((response) => {
+          //console.log(titles, managers);
+
+          let empId = employees.filter((el) => el.name === response.employee)[0]
+            .id;
+
+          connection.query(
+            "DELETE FROM employee WHERE ?",
+            [{ id: empId }],
+            (err, res) => {
+              if (err) throw err;
+              console.log(`Removed ${response.employee} from the database`);
+              // Call updateProduct AFTER the INSERT completes
+
+              menuPrompt();
+            }
+          );
+        });
+    }
+  );
 }
 
 function updateRole() {
@@ -274,6 +337,49 @@ function newRole() {
 
           menuPrompt();
         });
+      });
+  });
+}
+
+function deleteEmployee() {
+  connection.query(`SELECT title, id FROM role`, (err, res) => {
+    if (err) throw err;
+
+    let roles = res;
+    //managers.unshift({ name: "None", id: 0 });
+    //console.log(managers);
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          message: "Select a role to delete:",
+          choices: roles.map((el) => el.title),
+          name: "role",
+        },
+
+        {
+          type: "confirm",
+          message: "Are you sure you want to delete this role?",
+          default: true,
+          name: "confirm",
+        },
+      ])
+      .then((response) => {
+        //console.log(titles, managers);
+
+        let roleId = roles.filter((el) => el.title === response.role)[0].id;
+
+        connection.query(
+          "DELETE FROM employee WHERE ?",
+          [{ id: roleId }],
+          (err, res) => {
+            if (err) throw err;
+            console.log(`Removed ${response.role} from the database`);
+            // Call updateProduct AFTER the INSERT completes
+
+            menuPrompt();
+          }
+        );
       });
   });
 }
