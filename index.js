@@ -566,5 +566,6 @@ function departmentBudgets() {
     if (err) throw err;
 
     console.table(res);
+    menuPrompt();
   });
 }
